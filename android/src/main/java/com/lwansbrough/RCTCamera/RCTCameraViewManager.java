@@ -1,8 +1,8 @@
 package com.lwansbrough.RCTCamera;
 
-import android.support.annotation.Nullable;
 import com.facebook.react.uimanager.*;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import android.view.View;
 
 public class RCTCameraViewManager extends ViewGroupManager<RCTCameraView> {
     private static final String REACT_CLASS = "RCTCamera";
@@ -55,5 +55,10 @@ public class RCTCameraViewManager extends ViewGroupManager<RCTCameraView> {
     @ReactProp(name = "captureAudio")
     public void setCaptureAudio(RCTCameraView view, boolean captureAudio) {
         // TODO - implement video mode
+    }
+
+    @Override
+    public void addView(RCTCameraView parent, View child, int index) {
+        parent.addView(child, index + 1);   // index 0 for RCTCameraViewFinder reserved
     }
 }

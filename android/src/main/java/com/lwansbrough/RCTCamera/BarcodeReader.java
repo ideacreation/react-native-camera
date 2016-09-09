@@ -2,6 +2,7 @@ package com.lwansbrough.RCTCamera;
 
 import android.hardware.Camera;
 import android.os.AsyncTask;
+
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
@@ -14,27 +15,30 @@ import com.google.zxing.common.HybridBinarizer;
 import java.util.EnumMap;
 import java.util.EnumSet;
 
-/**
- * Created by lance.zhou on 2016/3/17.
- */
 public class BarcodeReader {
     private final MultiFormatReader multiFormatReader;
+    private AsyncTask asyncTask = null;
 
     public BarcodeReader() {
-        EnumMap<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
-        EnumSet<BarcodeFormat> decodeFormats = EnumSet.noneOf(BarcodeFormat.class);
-        decodeFormats.add(BarcodeFormat.QR_CODE);
-        hints.put(DecodeHintType.POSSIBLE_FORMATS, decodeFormats);
+//        EnumMap<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
+//        EnumSet<BarcodeFormat> decodeFormats = EnumSet.noneOf(BarcodeFormat.class);
+//        decodeFormats.add(BarcodeFormat.QR_CODE);
+//        hints.put(DecodeHintType.POSSIBLE_FORMATS, decodeFormats);
         multiFormatReader = new MultiFormatReader();
-        multiFormatReader.setHints(hints);
+        // multiFormatReader.setHints(hints);
     }
 
     public void read(byte[] image, Camera camera, CallBack callBack) {
-        new ReaderAsyncTask(camera, image, callBack).execute();
+        if (asyncTask != null) {
+            asyncTask.cancel(true);
+        }
+        asyncTask = new ReaderAsyncTask(camera, image, callBack).execute();
     }
 
     public void stop() {
-
+        if (asyncTask != null) {
+            asyncTask.cancel(true);
+        }
     }
 
     private class ReaderAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -53,13 +57,15 @@ public class BarcodeReader {
             if (isCancelled())
                 return null;
 
-            Camera.Size size = camera.getParameters().getPreviewSize();
             try {
+                Camera.Size size = camera.getParameters().getPreviewSize();
                 BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(buildLuminanceSource(image, size.width, size.height)));
                 callBack.onResult(camera, multiFormatReader.decodeWithState(bitmap));
             } catch (ReaderException re) {
                 // continue
                 callBack.onResult(camera, null);
+            } catch (Exception ex) {
+
             } finally {
                 multiFormatReader.reset();
             }
