@@ -153,7 +153,11 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                     .emit("CameraBarCodeRead", event);
         }
-        
-        camera.setOneShotPreviewCallback(this);
+
+        try {
+            camera.setOneShotPreviewCallback(this);
+        } catch(Exception e) {
+            // TODO: Terrible hack. It is possible that this method is invoked after camera is released.
+        }
     }
 }
